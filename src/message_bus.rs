@@ -105,10 +105,7 @@ impl MessageBus {
 
     async fn broadcast_message(&self, message: &str) {
         let mut connections = self.connections.lock().unwrap();
-        connections.retain(|tx| match tx.send(Message::Text(message.to_string())) {
-            Ok(_) => true,
-            Err(_) => false,
-        });
+        connections.retain(|tx| tx.send(Message::Text(message.to_string())).is_ok());
     }
 
     async fn remove_connection(&self, tx: &UnboundedSender<Message>) {
