@@ -59,7 +59,7 @@ OVOS_BUS_HOST=10.10.10.10 OVOS_BUS_PORT=8181 /usr/local/bin/ovos_messagebus
 
 ### Available Environment Variables
 
-- `OVOS_BUS_HOST` (default: `0.0.0.0`)
+- `OVOS_BUS_HOST` (default: `127.0.0.1`)
 - `OVOS_BUS_PORT` (default: `8181`)
 - `OVOS_BUS_CONFIG_FILE` (default: none)
 - `OVOS_BUS_MAX_MSG_SIZE` (default: `25`, in MB)
@@ -87,7 +87,7 @@ docker build -t ovos-rust-messagebus .
 To run the container:
 
 ```sh
-docker run -p 8181:8181 -e OVOS_BUS_HOST=0.0.0.0 ovos-rust-messagebus
+docker run -p 8181:8181 -e OVOS_BUS_HOST=127.0.0.1 ovos-rust-messagebus
 ```
 
 You can adjust the port mapping and environment variables as needed.

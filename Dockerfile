@@ -23,5 +23,8 @@ LABEL org.opencontainers.image.license="Apache-2.0"
 RUN apk add --no-cache libgcc
 # copy the binary into the final image
 COPY --from=0 /app/target/release/ovos_messagebus .
+
+# Be sure to secure this with a firewall or reverse proxy
+ENV OVOS_BUS_HOST=0.0.0.0
 # set the binary as entrypoint
 ENTRYPOINT ["/ovos_messagebus"]
