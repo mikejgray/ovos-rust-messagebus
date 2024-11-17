@@ -100,3 +100,62 @@ impl Config {
         config
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::config::env;
+    use crate::Config;
+    use std::path::PathBuf;
+
+    use serial_test::serial;
+
+    fn setup_default_config_environment() {
+        env::remove_var("OVOS_BUS_CONFIG_FILE");
+        env::remove_var("OVOS_BUS_PORT");
+        env::remove_var("OVOS_BUS_HOST");
+        env::remove_var("OVOS_BUS_MAX_MSG_SIZE");
+    }
+
+    #[serial]
+    #[test]
+    fn test_default_config() {
+        setup_default_config_environment();
+        let test_conf = Config::new();
+        assert_eq!(test_conf.host, "0.0.0.0".to_string());
+        assert_eq!(test_conf.port, 8181);
+        assert_eq!(test_conf.route, "/core".to_string());
+    }
+
+    #[serial]
+    #[test]
+    fn test_env_overrides() {
+        setup_default_config_environment();
+        env::set_var("OVOS_BUS_PORT", "1337");
+        env::set_var("OVOS_BUS_HOST", "battle.net");
+        env::set_var("OVOS_BUS_MAX_MSG_SIZE", "42");
+
+        let test_conf = Config::new();
+        assert_eq!(test_conf.port, 1337);
+        assert_eq!(test_conf.host, "battle.net".to_string());
+        assert_eq!(test_conf.max_msg_size, 42);
+    }
+
+    fn setup_test_config() {
+        let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        d.push("resources/test/test_config.json");
+        env::set_var("OVOS_BUS_CONFIG_FILE", d);
+        println!("config is {}", env::var("OVOS_BUS_CONFIG_FILE").unwrap());
+    }
+    #[serial]
+    #[test]
+    fn test_config_file() {
+        setup_default_config_environment();
+        setup_test_config();
+
+        let test_conf = Config::new();
+
+        assert_eq!(test_conf.port, 847);
+        assert_eq!(test_conf.host, "openvoiceos.org".to_string());
+        assert_eq!(test_conf.max_msg_size, 64);
+    }
+}
