@@ -1,0 +1,9 @@
+{
+// This is just a test file, do not use these values!
+    "websocket": {
+        "host": "openvoiceos.org",
+        "port": 847,
+        "ssl": false,
+        "max_msg_size": 64
+    }
+}
