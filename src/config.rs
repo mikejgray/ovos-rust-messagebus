@@ -36,7 +36,7 @@ impl Config {
     pub fn new() -> Self {
         // Default configuration
         let mut config = Config {
-            host: "0.0.0.0".to_string(),
+            host: "127.0.0.1".to_string(),
             port: 8181,
             route: "/core".to_string(),
             ssl: false,
@@ -121,7 +121,7 @@ mod tests {
     fn test_default_config() {
         setup_default_config_environment();
         let test_conf = Config::new();
-        assert_eq!(test_conf.host, "0.0.0.0".to_string());
+        assert_eq!(test_conf.host, "127.0.0.1".to_string());
         assert_eq!(test_conf.port, 8181);
         assert_eq!(test_conf.route, "/core".to_string());
     }
