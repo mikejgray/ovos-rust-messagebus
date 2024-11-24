@@ -63,6 +63,8 @@ OVOS_BUS_HOST=10.10.10.10 OVOS_BUS_PORT=8181 /usr/local/bin/ovos_messagebus
 - `OVOS_BUS_PORT` (default: `8181`)
 - `OVOS_BUS_CONFIG_FILE` (default: none)
 - `OVOS_BUS_MAX_MSG_SIZE` (default: `25`, in MB)
+- `OVOS_BUS_ROUTE` (default: `/core`)
+- `OVOS_BUS_USE_SSL` (default: `false`) NOTE: If the environment variable exists SSL will be enabled.
 
 Environment variables take precedence over settings in the configuration file.
 
@@ -102,7 +104,7 @@ To run the test suite:
 cargo test
 ```
 
-...except we don't have tests. Please feel free to contribute!
+...except we don't have very many tests. Please feel free to contribute!
 
 ### Contributing
 
