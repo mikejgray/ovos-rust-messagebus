@@ -1,13 +1,10 @@
-name: CI/CD Pipeline
+name: Release Build
 
 on:
-  push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main]
+  release:
+    types: [created]
 
 env:
-  DOCKER_IMAGE_NAME: ovos-rust-messagebus
   CARGO_TERM_COLOR: always
 
 permissions:
@@ -20,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        target: 
+        target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - armv7-unknown-linux-gnueabihf
@@ -69,12 +66,12 @@ jobs:
             sha256sum ovos_messagebus-${{ matrix.target }}.tar.gz > ovos_messagebus-${{ matrix.target }}.tar.gz.sha256
           fi
 
-      - name: Upload Binary Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ovos_messagebus-${{ matrix.target }}
-          path: |
-            release/ovos_messagebus-${{ matrix.target }}.tar.gz
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            release/ovos_messagebus-${{ matrix.target }}.tar.gz \
             release/ovos_messagebus-${{ matrix.target }}.tar.gz.sha256
 
   build-and-push:
@@ -110,51 +107,10 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: ${{ matrix.architecture }}
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: |
             ghcr.io/${{ steps.lowercase_repo.outputs.REPO_LOWERCASE }}:latest
             ghcr.io/${{ steps.lowercase_repo.outputs.REPO_LOWERCASE }}:${{ github.sha }}
+            ghcr.io/${{ steps.lowercase_repo.outputs.REPO_LOWERCASE }}:${{ github.event.release.tag_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  create-release:
-    needs: [build-binaries, build-and-push]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' && github.event_name != 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-
-      - name: Get version from Cargo.toml
-        id: get_version
-        run: |
-          VERSION=$(grep '^version =' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-          echo "RELEASE_VERSION=v${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.RELEASE_VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.RELEASE_VERSION }}
-          body: |-
-            Release of version ${{ steps.get_version.outputs.RELEASE_VERSION }}
-            [Automated release]
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Assets
-        run: |
-          for file in ovos_messagebus-*/ovos_messagebus-*.tar.gz ovos_messagebus-*/ovos_messagebus-*.tar.gz.sha256
-          do
-            asset_name=$(basename $file)
-            echo "Uploading $asset_name..."
-            curl --data-binary @"$file" \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/octet-stream" \
-              "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets?name=${asset_name}"
-          done
