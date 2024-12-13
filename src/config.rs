@@ -67,6 +67,12 @@ impl Config {
                 config.max_msg_size = size;
             }
         }
+        if let Ok(route) = env::var("OVOS_BUS_ROUTE") {
+            config.route = route;
+        }
+        if env::var("OVOS_BUS_USE_SSL").is_ok() {
+            config.ssl = true;
+        }
 
         config
     }
@@ -113,7 +119,8 @@ mod tests {
         env::remove_var("OVOS_BUS_CONFIG_FILE");
         env::remove_var("OVOS_BUS_PORT");
         env::remove_var("OVOS_BUS_HOST");
-        env::remove_var("OVOS_BUS_MAX_MSG_SIZE");
+        env::remove_var("OVOS_BUS_ROUTE");
+        env::remove_var("OVOS_BUS_USE_SSL");
     }
 
     #[serial]
@@ -124,6 +131,8 @@ mod tests {
         assert_eq!(test_conf.host, "127.0.0.1".to_string());
         assert_eq!(test_conf.port, 8181);
         assert_eq!(test_conf.route, "/core".to_string());
+        assert_eq!(test_conf.max_msg_size, 25);
+        assert!(!test_conf.ssl);
     }
 
     #[serial]
@@ -133,11 +142,15 @@ mod tests {
         env::set_var("OVOS_BUS_PORT", "1337");
         env::set_var("OVOS_BUS_HOST", "battle.net");
         env::set_var("OVOS_BUS_MAX_MSG_SIZE", "42");
+        env::set_var("OVOS_BUS_ROUTE", "/modermodemet");
+        env::set_var("OVOS_BUS_USE_SSL", "true");
 
         let test_conf = Config::new();
         assert_eq!(test_conf.port, 1337);
         assert_eq!(test_conf.host, "battle.net".to_string());
         assert_eq!(test_conf.max_msg_size, 42);
+        assert_eq!(test_conf.route, "/modermodemet");
+        assert!(test_conf.ssl);
     }
 
     fn setup_test_config() {
@@ -146,6 +159,7 @@ mod tests {
         env::set_var("OVOS_BUS_CONFIG_FILE", d);
         println!("config is {}", env::var("OVOS_BUS_CONFIG_FILE").unwrap());
     }
+
     #[serial]
     #[test]
     fn test_config_file() {

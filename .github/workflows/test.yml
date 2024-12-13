@@ -1,0 +1,32 @@
+name: test
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: OVOS Message bus Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: setup toolchain
+        uses: hecrj/setup-rust-action@v2
+        with:
+          rust-version: stable
+
+      - name: cargo test
+        run: cargo test --all-features -- --test-threads=1
+
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy
+        run: cargo clippy --all --all-features --tests -- -D warnings
